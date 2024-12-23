@@ -18,22 +18,22 @@ IEnumerable<string> Engrave(string i) =>
 	[(long.Parse(i) * 2024).ToString()];
 	
 IEnumerable<string> Blink(IEnumerable<string> input) => input.SelectMany(Engrave);
-
-Enumerable.Range(0, 75).Aggregate(input.AsEnumerable(), (i, _) => Blink(i)).Count().Dump();
+// part 1
+Enumerable.Range(0, 25).Aggregate(input.AsEnumerable(), (i, _) => Blink(i)).Count().Dump();
 
 // part 2
-/*
-var d = new Dictionary<string, int>
-{
-	["0"] = 1
-};
-
-V GetOrAdd<K, V>(Dictionary<K, V> d, K k, Func<K, V> gen) => d.ContainsKey(k) ? d[k] : d[k] = gen(k);
-
-long ComputePower(string s) => GetOrAdd(d, s, s => 
-	s == "0"
+var cache = new Dictionary<(string, int Depth), long>();
+long DFS(string s, int maxdepth, int actualdepth) {
+	if (cache.ContainsKey((s, actualdepth)))
+		return cache[(s, actualdepth)];
+		
+	if (actualdepth == maxdepth) {
+		return 1;
+	}
 	
-;
+	var ret = Engrave(s).Select(x => DFS(x, maxdepth, actualdepth + 1)).Sum();
+	cache[(s, actualdepth)] = ret;
+	return ret;
+}
 
-input.Select(ComputePower).Sum();
-*/
+input.Select(i => DFS(i, 75, 0)).Sum().Dump();
