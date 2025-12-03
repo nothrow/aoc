@@ -1,43 +1,38 @@
-<Query Kind="Program" />
+<Query Kind="FSharpProgram" />
 
-(int, char) LargestWithIndex(ReadOnlySpan<char> d)
-{
-	var ret = (0, '\0');
-	for(int i = 0; i < d.Length; i++) {
-		if (d[i] > ret.Item2) {
-			ret = (i, d[i]);
-		}
-	}
-	return ret;
-}
+let (</>) a b = Path.Combine(a, b)
+let input = Path.GetDirectoryName(Util.CurrentQueryPath) </> "input.txt"
 
-ReadOnlySpan<char> SliceMax(ReadOnlySpan<char> b, int maxlen) 
-{
-	return b.Length > maxlen ? b[0..maxlen] : b;
-}
+let largestWithIndex s =
+    s |> 
+    Seq.mapi (fun i c -> i, c) |> 
+    Seq.maxBy snd
 
-long Joltage(string bank, int batteries)
-{
-	Span<char> dat = stackalloc char[batteries];
-	ReadOnlySpan<char> buf = bank.AsSpan();
-	
-	var first = 0;
-	var last = bank.Length - batteries + 1;
-	
-	for (int b = 0; b < batteries; b++)
-	{
-		(var f, dat[b]) = LargestWithIndex(buf[first..(last+b)]);
-		first += f + 1;
-	}	
-	
-	return long.Parse(dat);
-}
+let slm max =
+    Seq.truncate max
 
-void Main()
-{
-	var input = File.ReadLines(Path.Combine(Path.GetDirectoryName(Util.CurrentQueryPath), "input.txt"));
-	input.Select(l => Joltage(l, 2)).Sum().Dump();
-	input.Select(l => Joltage(l, 12)).Sum().Dump();
-}
+let agg first (idx, c) = (c, first + idx + 1)
 
-// You can define other methods, fields, classes and namespaces here
+let joltage batteries (bank : string)  =
+    [ 0 .. batteries - 1 ] |>
+        List.mapFold (fun first b ->
+            bank.[first .. bank.Length - batteries + b] |> largestWithIndex |> agg first
+        ) 0 |>
+        fst |>
+        List.toArray |>
+        String |>
+        int64
+    
+input |>
+    File.ReadLines |>
+    Seq.map (joltage 2) |>
+    Seq.sum |>
+    Dump
+
+input |>
+    File.ReadLines |>
+    Seq.map (joltage 12) |>
+    Seq.sum |>
+    Dump
+    
+    
