@@ -4,6 +4,7 @@
 #include<assert.h>
 #include<stdint.h>
 #include<immintrin.h>
+#include<time.h>
 
 static void trimnl(char * str) {
 	while(*str && *str != '\n') {
@@ -184,18 +185,21 @@ int main()
 	int step = 0;
 	size_t removed;
 	size_t total = 0;
+	clock_t start = clock();
 	do
 	{
 		clear(image2, stride);
+
 		step1(image, image2, stride);
 		removed = sum(image2, stride * stride);
+		removeoverlay(image, image2, stride);
 
 		printf("step %d: %lld, total: %lld\n", step++, removed, total += removed);
 
 		// writeimgs(image, image2, stride);
-
-		removeoverlay(image, image2, stride);
 	} while (removed > 0);
+	clock_t end = clock();
+	printf("Running time: %0.04fs", ((double)(end - start)) / CLOCKS_PER_SEC);
 
 	free(image2);
 	free(image);
